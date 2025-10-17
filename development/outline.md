@@ -1,10 +1,10 @@
-----
+---
 title: Upgrading the AI Tutor's Extensibility
 author:
 - Neftali Watkinson Medina
 - Joshua Zingale
 abstract: The AI Tutor is an ongoing research project by Dr. Neftali Watkinson Medina with his Ph.D. student Joshua. In order to make easier the development of the AI Tutor, the current UI must be overhauled to prioritize future extensibility while minimizing complexity. This project seeks to migrate the current AI Tutor's functionality to Chainlit, an open-source Python library for creating Chatbot-like applications. The student will create a web interface for the AI Tutor using Chainlit, leveraging its component library. The student will also integrate with the AI Tutor's current authentication system and business logic to maintain state between this student-facing application and the existent instructor-facing application. As time permits, the student will also integrate embedded questions into the chat interface and the Model Context Protocol.
-----
+---
 
 # Introduction
 
@@ -42,4 +42,4 @@ These should be completed in loose order from first to last.
 
 This project is planned to continue, possibly for multiple years.
 Therefore, coding with a good style is important, that others can easily understand, debug, and add to the codebase.
-See [CONTRIBUTING.md](/CONTRIBUTING.md)
+See [CONTRIBUTING.md](/CONTRIBUTING.md) for information on coding style.
