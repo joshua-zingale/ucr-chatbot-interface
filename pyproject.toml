@@ -1,0 +1,10 @@
+[project]
+name = "ucr-chatbot-interface"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "chainlit>=2.8.3",
+    "fastapi>=0.116.2",
+]
