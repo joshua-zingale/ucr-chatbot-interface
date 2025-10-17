@@ -43,3 +43,5 @@ These should be completed in loose order from first to last.
 This project is planned to continue, possibly for multiple years.
 Therefore, coding with a good style is important, that others can easily understand, debug, and add to the codebase.
 See [CONTRIBUTING.md](/CONTRIBUTING.md) for information on coding style.
+
+Create a fork on GitHub and start working.
