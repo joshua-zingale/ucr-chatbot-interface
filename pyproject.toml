@@ -8,26 +8,29 @@ dependencies = [
     "chainlit>=2.8.3",
     "fastapi>=0.116.2",
     "uvicorn>=0.37.0",
+    "google-generativeai>=0.8.5",
+    "openai>=2.6.1",
+    "pymongo>=4.15.3",
+    "python-dotenv>=1.2.1",
 ]
 
 [dependency-groups]
 dev = [
-    "pyright>=1.1.406",
-    "ruff>=0.14.1",
+  "pyright>=1.1.407",
+  "ruff>=0.14.2",
 ]
 
 [tool.pyright]
 typeCheckingMode = "standard"
 
-
 [tool.ruff]
-include=["src/**.py"]
+include = ["src/**/*.py"]
 
 [tool.ruff.lint]
 select = [
-    "E",
-    "F",
-    "D101",
-    "D102",
-    "D103"] 
-
+  "E",
+  "F",
+  "D101",
+  "D102",
+  "D103",
+]
