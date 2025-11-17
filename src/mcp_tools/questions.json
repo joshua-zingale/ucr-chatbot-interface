@@ -1,0 +1,26 @@
+{
+  "math": [
+    {
+      "question": "What is 2 + 2?",
+      "choices": ["3", "4", "5", "6"],
+      "correct_answer": "4"
+    },
+    {
+      "question": "Which number is prime?",
+      "choices": ["9", "12", "11", "15"],
+      "correct_answer": "11"
+    }
+  ],
+  "history": [
+    {
+      "question": "When was UCR founded?",
+      "choices": ["1907", "1954", "1972", "1999"],
+      "correct_answer": "1954"
+    },
+    {
+      "question": "Who was the first U.S. president?",
+      "choices": ["Abraham Lincoln", "George Washington", "John Adams", "Thomas Jefferson"],
+      "correct_answer": "George Washington"
+    }
+  ]
+}
