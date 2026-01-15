@@ -1,84 +1,148 @@
-/* --- Global light theme override --- */
-html, body {
-  background-color: #ffffff !important;
-  color: #1E1E1E !important;
-  font-family: Arial, sans-serif !important;
+/*******************************************************
+ * UCR BRAND COLORS
+ *******************************************************/
+:root {
+  --ucr-blue: #003da5;
+  --ucr-gold: #ffc72c;
+  --ucr-dark-navy: #001a3e;
+  --ucr-light-bg: #fff3c4;
+  --ucr-dark-bg: #1a1a1a;
+  --ucr-dark-card: #2b2b2b;
 }
 
-/* --- Header bar --- */
-header {
-  background-color: #2E6DB4 !important; /* UCR blue */
-  color: #ffffff !important;
-}
-header a {
-  color: #FDB515 !important; /* UCR gold */
-  font-weight: 600;
+/*******************************************************
+ * GLOBAL
+ *******************************************************/
+body, .cl-root {
+  font-family: "Inter", sans-serif !important;
 }
 
-/* --- Buttons --- */
-button, .cl-button-primary {
-  background-color: #2E6DB4 !important;  /* UCR blue */
-  color: #ffffff !important;
-  border-radius: 8px !important;
-  border: none !important;
+
+/********************************************************
+ * ScottGPT left, New Chat next, other icons far right
+ ********************************************************/
+
+/* Make header a flex row */
+#header {
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 20px !important;
+  position: relative !important;
+
+  /* BACKDROP IMAGE */
+  background-image: url("/public/banner.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+
+  /* REMOVE ORIGINAL COLOR */
+  background-color: transparent !important;
+
+  border-bottom: 4px solid var(--ucr-gold) !important;
 }
-button:hover, .cl-button-primary:hover {
-  background-color: #FDB515 !important;  /* UCR gold */
-  color: #1E1E1E !important;
+ /* Increase or decrease this to change width of header */
+#header {
+  height: 80px !important; 
+  min-height: 80px !important;
 }
 
-/* --- Chat bubbles --- */
-.cl-message.user {
-  background-color: #FDB515 !important;  /* UCR gold */
-  color: #1E1E1E !important;
-  border-radius: 12px !important;
-  padding: 10px !important;
+/* ScottGPT label */
+#header::before {
+  content: "ScottGPT";
+  color: white;
+  font-size: 26px;
+  font-weight: 700;
+  margin-right: 12px;
+
+  /* NEW — make sure it sits ABOVE the overlay */
+  position: relative;
+  z-index: 2;
 }
+
+/* NEW — optional dark overlay for readability */
+#header::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.25); /* adjust if needed */
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Move NEW CHAT group after ScottGPT */
+#new-chat-button {
+  margin-left: 8px !important;
+  position: relative;
+  z-index: 2; /* ensure above overlay */
+}
+
+/* Push right-side icons to the right */
+#header > div.flex.items-center.gap-1 {
+  margin-left: auto !important;
+  position: relative;
+  z-index: 2;
+}
+
+
+
+/*******************************************************
+ * SEND BUTTON
+ *******************************************************/
+.cl-send-button {
+  background: var(--ucr-blue) !important;
+  color: white !important;
+  border-radius: 10px !important;
+  padding: 8px 14px !important;
+}
+
+.dark .cl-send-button {
+  background: var(--ucr-gold) !important;
+  color: var(--ucr-dark-navy) !important;
+}
+
+/*******************************************************
+ * MESSAGE BUBBLES
+ *******************************************************/
 .cl-message.assistant {
-  background-color: #2E6DB4 !important;  /* UCR blue */
-  color: #ffffff !important;
-  border-radius: 12px !important;
-  padding: 10px !important;
+  background: var(--ucr-blue) !important;
+  color: white !important;
+  border-radius: 14px !important;
+  padding: 16px !important;
+  max-width: 85% !important;
 }
 
-/* --- Input area --- */
-textarea, input {
-  background-color: #f9f9f9 !important;
-  color: #1E1E1E !important;
-  border: 1px solid #2E6DB4 !important;
-  border-radius: 8px !important;
+.cl-message.user {
+  background: var(--ucr-gold) !important;
+  color: var(--ucr-dark-navy) !important;
+  border-radius: 14px !important;
+  padding: 16px !important;
+  margin-left: auto !important;
+  max-width: 85% !important;
 }
 
-/* --- Remove dark/light toggle --- */
-/*
-[data-theme-toggle] {
-  display: none !important;
-}*/
 
-/* UCR-styled dark mode */
-[data-theme="dark"] {
-  background-color: #121212 !important;
-  color: #f5f5f5 !important;
+
+/*******************************************************
+ *Sidebar
+ *******************************************************/
+ .ucr-sidebar {
+  padding: 10px;
 }
 
-/* Buttons in dark mode */
-[data-theme="dark"] button,
-[data-theme="dark"] .cl-button-primary {
-  background-color: #2E6DB4 !important;
-  color: #ffffff !important;
-}
-[data-theme="dark"] button:hover,
-[data-theme="dark"] .cl-button-primary:hover {
-  background-color: #FDB515 !important;
-  color: #1E1E1E !important;
+.ucr-btn {
+  width: 100%;
+  background: var(--ucr-blue);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-align: left;
+  margin-bottom: 8px;
+  cursor: pointer;
+  border: none;
+  font-family: Inter;
 }
 
-/* Chat bubbles in dark mode */
-[data-theme="dark"] .cl-message.user {
-  background-color: #FDB515 !important;
-  color: #1E1E1E !important;
-}
-[data-theme="dark"] .cl-message.assistant {
-  background-color: #2E6DB4 !important;
-  color: #ffffff !important;
+.ucr-btn:hover {
+  background: #002d78;
 }

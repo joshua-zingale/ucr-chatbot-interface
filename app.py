@@ -1,153 +1,100 @@
-from typing import Optional, Dict
 import chainlit as cl
 from llm import LLMClient
-from database import (
-    log_message,
-    start_conversation,
-    list_conversations,
-    get_conversation
-)
-import chainlit_patch
+from chainlit.types import ThreadDict
+from starlette.datastructures import Headers
+from typing import Optional
 
-
-# ─────────────────────────────────────────────
-#  Header Authentication (temporary bypass)
-# ─────────────────────────────────────────────
+# ---------------------------------------
+# TEMP AUTH (replace with OAuth later)
+# ---------------------------------------
 @cl.header_auth_callback
-def header_auth_callback(headers: Dict) -> Optional[cl.User]:
-    # Temporary bypass for local testing
-    return cl.User(identifier="dev-user", metadata={"role": "admin"})
+async def auth(headers: Headers) -> Optional[cl.User]:
+    return cl.User(identifier="dev-user")
 
 
-# ─────────────────────────────────────────────
-#  Chat start: create thread and build sidebar
-# ─────────────────────────────────────────────
+# ---------------------------------------
+# START CHAT
+# ---------------------------------------
 @cl.on_chat_start
-async def start():
+async def on_chat_start():
+    
     user = cl.user_session.get("user")
     user_id = user.identifier if user else "anonymous"
 
-    # Create new thread
-    thread_id = start_conversation(user_id=user_id)
-    cl.user_session.set("thread_id", thread_id)
 
-    # Initialize LLM client
-    llm_client = LLMClient()
-    llm_client.start_chat(system_prompt="You are a helpful AI tutor assistant.")
-    cl.user_session.set("llm_client", llm_client)
+    # Create a NEW LLM session
+    llm = LLMClient()
+    llm.start_chat(system_prompt="You are a helpful AI tutor assistant.")
+    cl.user_session.set("llm_client", llm)
 
-    await cl.Message(content=f"🧠 New conversation started for **{user_id}**").send()
-
-    # Build sidebar on session start
-    await build_sidebar(user_id)
-
-
-# ─────────────────────────────────────────────
-#  Sidebar builder (persistent left panel)
-# ─────────────────────────────────────────────
-# ─────────────────────────────────────────────
-#  Sidebar builder (persistent left panel)
-# ─────────────────────────────────────────────
-async def build_sidebar(user_id="anonymous"):
-    convos = [
-        c for c in list_conversations(user_id)
-        if get_conversation(c["thread_id"], user_id).get("messages")
-    ]
-
-    if not convos:
-        html = "<p class='no-convo'>🗂 No saved conversations yet.</p>"
-    else:
-        html = "<h3>🧠 Your Conversations</h3>"
-        for convo in convos:
-            html += (
-                f"<button class='ucr-btn' data-thread='{convo['thread_id']}'>"
-                f"🔁 {convo.get('title', 'Untitled Chat')[:38]}</button><br>"
-            )
-
-    # ✅ Correct placement of display="side"
-    await cl.ChatSettings(
-        elements=[
-            cl.Text(name="sidebar", content=f"<div class='ucr-sidebar'>{html}</div>")
-        ],
-        display="side"
+    await cl.Message(
+        author="assistant",
+        content=f"New conversation started for **{user_id}**"
     ).send()
 
-# ─────────────────────────────────────────────
-#  Main handler: normal chat + sidebar actions
-# ─────────────────────────────────────────────
+
+# ---------------------------------------
+# ON USER MESSAGE
+# ---------------------------------------
 @cl.on_message
-async def main(message: cl.Message):
+async def on_message(message: cl.Message):
+    llm = cl.user_session.get("llm_client")
+    assert llm is not None
+
     text = message.content.strip()
-    llm_client = cl.user_session.get("llm_client")
-    thread_id = cl.user_session.get("thread_id")
-    user = cl.user_session.get("user")
-    user_id = user.identifier if user else "anonymous"
 
-    # Sidebar click event → resume conversation
-    if text.startswith("resume:"):
-        thread_id = text.split("resume:")[-1].strip()
-        await resume_conversation(thread_id, user_id)
-        return
+    reply = cl.Message(content="")
+    buffer = ""
 
-    if not isinstance(llm_client, LLMClient):
-        await cl.Message(content="⚠️ LLM not initialized. Please refresh.").send()
-        return
+    for chunk in llm.send_message_stream(text): 
+        buffer += chunk
+        await reply.stream_token(chunk)
 
-    # Normal chat flow
-    log_message("user", text, thread_id, user_id)
-    convo = get_conversation(thread_id, user_id)
-    gemini_history = [
-        {"role": m["role"], "parts": [{"text": m["text"]}]}
-        for m in convo.get("messages", [])
-    ] if convo else []
-
-    llm_client.start_chat(
-        system_prompt="You are a helpful AI tutor assistant.",
-        history=gemini_history
-    )
-
-    msg = cl.Message(content="")
-    async for chunk in stream_response(llm_client, text):
-        await msg.stream_token(chunk)
-    await msg.send()
-
-    log_message("assistant", msg.content, thread_id, user_id)
-    await build_sidebar(user_id)
+    await reply.send()
 
 
-# ─────────────────────────────────────────────
-#  Resume existing conversation
-# ─────────────────────────────────────────────
-async def resume_conversation(thread_id, user_id):
-    convo = get_conversation(thread_id, user_id)
-    if not convo:
-        await cl.Message(content=f"⚠️ Conversation {thread_id} not found.").send()
-        return
+# ---------------------------------------------
+# RESUME CHAT (PostgreSQL) + Rebuild LLM State
+# ---------------------------------------------
+@cl.on_chat_resume
+async def on_chat_resume(thread: ThreadDict):
+ 
+    print(f"Resuming thread: {thread['id']}")
 
-    cl.user_session.set("thread_id", convo["thread_id"])
+    steps = thread.get("steps", [])
+    history = []
 
-    llm_client = LLMClient()
-    gemini_history = [
-        {"role": m["role"], "parts": [{"text": m["text"]}]}
-        for m in convo.get("messages", [])
-    ]
-    llm_client.start_chat(
-        system_prompt="You are a helpful AI tutor assistant.",
-        history=gemini_history
-    )
-    cl.user_session.set("llm_client", llm_client)
+    # 1. Replay old messages into the UI
+    for step in steps:
+        msg_type = step.get("type")
+        content = step.get("output")
 
-    await cl.Message(content=f"🔁 Resuming **{convo['title']}**").send()
-    for m in convo["messages"]:
-        await cl.Message(
-            author="You" if m["role"] == "user" else "Tutor",
-            content=m["text"]
-        ).send()
+        if not content:
+            continue
+        
+        author = "user" if msg_type == "user_message" else "assistant"
 
+        # Send back to UI
+        await cl.Message(author=author, content=content).send()
 
-# ─────────────────────────────────────────────
-#  Stream helper
-# ─────────────────────────────────────────────
-async def stream_response(llm_client: LLMClient, message: str):
-    for chunk in llm_client.send_message_stream(message):
-        yield chunk
+        # Capture for restoring LLM
+        history.append({"role": author, "content": content})
+
+    # 2. Rebuild your Gemini client
+    llm = LLMClient()
+    llm.start_chat(system_prompt="You are a helpful AI tutor assistant.")
+    assert llm.chat is not None
+    
+    # 3. Re-feed only user messages to Gemini
+    for h in history:
+        if h["role"] == "user":
+            llm.chat.send_message(h["content"])
+
+    # 4. Save to session
+    cl.user_session.set("llm_client", llm)
+    cl.user_session.set("history", history)
+
+    await cl.Message(
+        author="assistant",
+        content="Conversation restored — you may continue."
+    ).send()

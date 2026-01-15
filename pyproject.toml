@@ -34,3 +34,8 @@ select = [
   "D102",
   "D103",
 ]
+
+[tool.pyright]
+typeCheckingMode = "standard"
+venv = ".venv"
+venvPath = "."
